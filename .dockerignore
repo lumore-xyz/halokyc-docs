@@ -1,0 +1,13 @@
+.git
+.gitignore
+.next
+.source
+node_modules
+coverage
+out
+build
+*.log
+*.tsbuildinfo
+.env*
+Dockerfile*
+README.md
