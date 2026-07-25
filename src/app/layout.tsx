@@ -1,6 +1,7 @@
 import { RootProvider } from "fumadocs-ui/provider/next";
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono, Manrope } from "next/font/google";
+import { publicEnv } from "@/lib/env";
 import "./global.css";
 
 const inter = Inter({
@@ -19,15 +20,41 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
-  ),
+  metadataBase: new URL(publicEnv.siteUrl),
   title: {
     default: "HaloKYC Documentation",
     template: "%s · HaloKYC Docs",
   },
   description:
     "Set up HaloKYC and add calm, auditable identity verification to your product.",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    siteName: "HaloKYC Docs",
+    title: "HaloKYC Documentation",
+    description:
+      "Set up HaloKYC and add calm, auditable identity verification to your product.",
+    images: [
+      {
+        url: "/og/docs/image.png",
+        width: 1200,
+        height: 630,
+        alt: "HaloKYC Documentation",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "HaloKYC Documentation",
+    description:
+      "Set up HaloKYC and add calm, auditable identity verification to your product.",
+    images: ["/og/docs/image.png"],
+    creator: "@halokyc",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function Layout({ children }: LayoutProps<"/">) {
