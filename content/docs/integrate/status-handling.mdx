@@ -1,0 +1,44 @@
+---
+title: Handle verification status
+description: Map HaloKYC lifecycle states to safe product behavior.
+icon: ListChecks
+---
+
+Your product should define behavior for every status, including non-terminal and operator-review states.
+
+| Status | Product behavior |
+| --- | --- |
+| `pending_upload` | Offer “Continue verification” using the existing hosted URL. |
+| `awaiting_credits` | Tell the user their evidence was received; alert the workspace owner. |
+| `processing` | Show a neutral processing state and poll with backoff if needed. |
+| `approved` | Apply the verified entitlement idempotently. |
+| `rejected` | Apply your policy and offer an appropriate support path. |
+| `manual_review` | Keep access pending and route the session to an operator. |
+
+## Reconciliation
+
+```ts
+const response = await fetch(
+  `${process.env.HALOKYC_API_URL}/api/v1/verifications/${verificationId}`,
+);
+
+if (!response.ok) {
+  throw new Error(`Could not reconcile HaloKYC status: ${response.status}`);
+}
+
+const verification = await response.json();
+```
+
+<Callout type="info" title="Keep a local decision record">
+  Store the verification ID, external user ID, status, risk score, decision reason, and the time your product applied the result. This makes retries and audits predictable.
+</Callout>
+
+## Polling
+
+Poll only while the user is waiting or while recovering from a missed webhook. Start around 2–3 seconds and back off. Stop when you reach `approved`, `rejected`, or `manual_review`.
+
+Do not assume processing is instant, and do not convert a timeout into a rejection.
+
+## Manual review
+
+`manual_review` is a valid decision path, not an error. Keep the user's sensitive entitlement pending until an authorized reviewer approves or rejects the session in the HaloKYC dashboard.

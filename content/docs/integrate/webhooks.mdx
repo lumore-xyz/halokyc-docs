@@ -1,0 +1,83 @@
+---
+title: Handle webhooks
+description: Receive decision notifications and reconcile verification state safely.
+icon: Webhook
+---
+
+When processing reaches a decision, HaloKYC sends a JSON `POST` to the `callback_url` stored on the session.
+
+## Payload
+
+```json
+{
+  "verification_id": "937f4cd5-7f58-4f76-b1ee-754927d7b020",
+  "external_user_id": "user_01842",
+  "status": "approved",
+  "risk_score": 12,
+  "decision_reason": "All configured checks passed"
+}
+```
+
+The request includes:
+
+```text
+Content-Type: application/json
+X-Verification-Signature: <HMAC-SHA256 signature>
+```
+
+<Callout type="warn" title="Configure the signing secret first">
+  Your deployment must give your integration the webhook signing secret through a secure, out-of-band channel. Never place it in frontend code. If your environment does not expose a per-workspace secret yet, treat the webhook only as a notification and reconcile the session before acting.
+</Callout>
+
+## Receiver pattern
+
+Read the raw request bytes before parsing JSON so signature verification uses exactly the bytes HaloKYC signed.
+
+```ts title="app/api/webhooks/halokyc/route.ts"
+import { createHmac, timingSafeEqual } from "node:crypto";
+
+function validSignature(rawBody: string, received: string | null) {
+  if (!received) return false;
+
+  const expected = createHmac("sha256", process.env.HALOKYC_WEBHOOK_SECRET!)
+    .update(rawBody)
+    .digest("hex");
+
+  const a = Buffer.from(expected, "utf8");
+  const b = Buffer.from(received, "utf8");
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
+export async function POST(request: Request) {
+  const rawBody = await request.text();
+  const signature = request.headers.get("x-verification-signature");
+
+  if (!validSignature(rawBody, signature)) {
+    return new Response("Invalid signature", { status: 401 });
+  }
+
+  const event = JSON.parse(rawBody) as {
+    verification_id: string;
+    external_user_id: string;
+    status: "approved" | "rejected" | "manual_review";
+    risk_score: number | null;
+    decision_reason: string | null;
+  };
+
+  // Enqueue an idempotent job keyed by verification_id.
+  await queueVerificationReconciliation(event.verification_id);
+
+  return new Response(null, { status: 204 });
+}
+```
+
+## Operational rules
+
+- Return a `2xx` response after durable receipt, not after slow downstream work.
+- Make handling idempotent. The same verification may be delivered or reconciled more than once.
+- Key updates by `verification_id` and confirm the expected `external_user_id`.
+- Preserve `decision_reason` exactly as returned for auditability.
+- Accept only publicly reachable HTTP(S) callback URLs. Localhost and private network targets are rejected by HaloKYC.
+- Use the webhook as a notification. Reconcile authoritative state before high-impact access changes.
+
+Continue with [status handling](/integrate/status-handling).

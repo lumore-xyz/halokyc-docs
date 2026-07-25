@@ -1,0 +1,40 @@
+---
+title: Authentication
+description: Understand server API keys and public verification-session credentials.
+icon: KeyRound
+---
+
+HaloKYC has two authentication boundaries.
+
+## Workspace API
+
+Server-to-server endpoints use a workspace-scoped API key:
+
+```http
+X-API-Key: live_your_secret_key
+```
+
+Use the key only from trusted backend code. A key resolves to one active organization and workspace, so it cannot access workflows or sessions in another workspace.
+
+```bash
+curl "$HALOKYC_API_URL/api/v1/workflows/$HALOKYC_WORKFLOW_ID" \
+  -H "X-API-Key: $HALOKYC_API_KEY"
+```
+
+Rotate keys by creating a replacement, deploying it, confirming traffic, and then revoking the old key.
+
+## Public verification flow
+
+Capture endpoints use the verification UUID in the path or query string. The UUID is an unguessable bearer credential that allows a user to complete one specific session without receiving your API key.
+
+Treat the URL as sensitive:
+
+- send it only to the intended authenticated user;
+- use HTTPS;
+- avoid third-party scripts on custom capture pages;
+- redact it from logs and support tools;
+- do not reuse it as your own authorization token.
+
+## Dashboard authentication
+
+Dashboard endpoints use the signed-in user's session and role-based workspace permissions. These are separate from integration API keys and should not be called by your server integration.

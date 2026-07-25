@@ -1,0 +1,47 @@
+---
+title: HaloKYC documentation
+description: Add calm, auditable identity verification to your product.
+icon: BookOpenText
+---
+
+HaloKYC is a hosted identity-verification flow and developer API. Your server creates a session, your user completes the required checks, and your product receives a final status.
+
+<Callout type="info" title="The recommended integration">
+  Create sessions from your backend and redirect users to the HaloKYC hosted flow. Never expose an API key in browser code.
+</Callout>
+
+<Cards>
+  <Card title="Set up HaloKYC" description="Create a workspace, API key, and workflow." href="/getting-started/setup" />
+  <Card title="Run your first verification" description="Create a session and open the hosted flow." href="/getting-started/first-verification" />
+  <Card title="Integrate the hosted flow" description="Add the redirect and return path to your product." href="/integrate/hosted-flow" />
+  <Card title="Handle results" description="Consume webhooks and reconcile status safely." href="/integrate/webhooks" />
+</Cards>
+
+## How the pieces fit
+
+<Steps>
+  <Step>
+    ### Your backend starts a session
+
+    Send an `external_user_id`, a `workflow_id`, and an optional HTTPS callback URL using your workspace API key.
+  </Step>
+  <Step>
+    ### Your product redirects the user
+
+    Open `/verify?verification_id=<uuid>` on your HaloKYC frontend. The session ID is the bearer credential for the public capture flow.
+  </Step>
+  <Step>
+    ### HaloKYC runs the workflow
+
+    Depending on the workflow, HaloKYC captures identity documents and a selfie, then performs document, face, liveness, age, and duplicate checks.
+  </Step>
+  <Step>
+    ### Your server consumes the decision
+
+    Use the webhook as a notification, then fetch or reconcile the session status before changing a sensitive entitlement.
+  </Step>
+</Steps>
+
+## Pick a guide
+
+If this is your first integration, follow [Setup](/getting-started/setup) and [First verification](/getting-started/first-verification) in order. If you already have credentials, jump to the [hosted-flow guide](/integrate/hosted-flow).

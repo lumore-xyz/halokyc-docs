@@ -1,0 +1,536 @@
+@import "tailwindcss";
+@import "fumadocs-ui/css/shadcn.css";
+@import "fumadocs-ui/css/preset.css";
+
+:root {
+  --background: #173426;
+  --foreground: #f7f3e8;
+  --card: #234333;
+  --card-foreground: #f7f3e8;
+  --popover: #294b39;
+  --popover-foreground: #f7f3e8;
+  --primary: #c8e64f;
+  --primary-foreground: #172318;
+  --secondary: #2d503d;
+  --secondary-foreground: #f4f0e5;
+  --muted: #294736;
+  --muted-foreground: #aeb8a6;
+  --accent: #c8e64f;
+  --accent-foreground: #172318;
+  --destructive: #e78178;
+  --destructive-foreground: #25110f;
+  --border: rgb(247 243 232 / 10%);
+  --ring: #d6f15a;
+  --sidebar: #10271c;
+  --sidebar-foreground: #f7f3e8;
+  --sidebar-primary: #c8e64f;
+  --sidebar-primary-foreground: #172318;
+  --sidebar-accent: #294736;
+  --sidebar-accent-foreground: #f7f3e8;
+  --sidebar-border: rgb(247 243 232 / 10%);
+  --sidebar-ring: #d6f15a;
+  --radius: 1rem;
+  --halo-forest-deep: #10271c;
+  --halo-surface: #234333;
+  --halo-surface-raised: #294b39;
+  --halo-cream: #f7f3e8;
+  --halo-cream-soft: #d1ccbf;
+  --halo-lime: #c8e64f;
+  --halo-lime-bright: #d6f15a;
+  --halo-rule: rgb(247 243 232 / 10%);
+}
+
+@theme inline {
+  --color-fd-background: var(--background);
+  --color-fd-foreground: var(--foreground);
+  --color-fd-muted: var(--muted);
+  --color-fd-muted-foreground: var(--muted-foreground);
+  --color-fd-popover: var(--popover);
+  --color-fd-popover-foreground: var(--popover-foreground);
+  --color-fd-card: var(--card);
+  --color-fd-card-foreground: var(--card-foreground);
+  --color-fd-border: var(--border);
+  --color-fd-primary: var(--primary);
+  --color-fd-primary-foreground: var(--primary-foreground);
+  --color-fd-secondary: var(--secondary);
+  --color-fd-secondary-foreground: var(--secondary-foreground);
+  --color-fd-accent: var(--accent);
+  --color-fd-accent-foreground: var(--accent-foreground);
+  --color-fd-ring: var(--ring);
+}
+
+html,
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+body {
+  font-family: var(--font-sans), sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+.font-display {
+  font-family: var(--font-display), sans-serif;
+  letter-spacing: -0.025em;
+}
+
+code,
+pre,
+kbd {
+  font-family: var(--font-mono), monospace;
+}
+
+::selection {
+  color: var(--primary-foreground);
+  background: var(--halo-lime);
+}
+
+.halo-brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.halo-logo {
+  display: block;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+}
+
+.halo-logo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+}
+
+.halo-docs-label {
+  padding-left: 0.55rem;
+  border-left: 1px solid var(--halo-rule);
+  color: var(--muted-foreground);
+  font-family: var(--font-sans), sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Fumadocs cards use the lime accent surface on hover. Pair that surface with
+   the dark accent foreground instead of retaining cream/muted text. */
+[data-card].bg-fd-card:hover {
+  color: var(--accent-foreground);
+}
+
+[data-card].bg-fd-card:hover > p,
+[data-card].bg-fd-card:hover > div:last-child {
+  color: color-mix(in srgb, var(--accent-foreground) 78%, transparent);
+}
+
+/* Previous/next page links are rendered by a separate Fumadocs component. */
+#nd-page a[class*="hover:bg-fd-accent"]:hover > .text-fd-muted-foreground {
+  color: color-mix(in srgb, var(--accent-foreground) 78%, transparent);
+}
+
+/* TOC links do not receive an accent background, so their hover foreground
+   must remain light against the forest canvas. */
+#nd-toc a:hover,
+[data-toc-popover-content] a:hover {
+  color: var(--foreground);
+}
+
+#nd-toc a[data-active="true"],
+#nd-toc a[data-active="true"]:hover,
+[data-toc-popover-content] a[data-active="true"],
+[data-toc-popover-content] a[data-active="true"]:hover {
+  color: var(--primary);
+}
+
+/* Selected search results use the lime accent surface. Override breadcrumb,
+   heading, and excerpt utilities that otherwise retain dark-surface colors. */
+#fd-search-dialog-content
+  button[aria-selected="true"]
+  [class*="text-fd-muted-foreground"],
+#fd-search-dialog-content
+  button[aria-selected="true"]
+  [class*="text-fd-popover-foreground"],
+#fd-search-dialog-content
+  button[aria-selected="true"]
+  [class*="text-fd-primary"] {
+  color: var(--accent-foreground);
+}
+
+/* Some interactive rows contain links or labels with an explicit lime
+   `text-fd-primary` utility. When the row itself turns lime on hover, those
+   descendants need the contrasting dark foreground as well. */
+[class*="hover:bg-fd-accent"]:hover [class*="text-fd-primary"],
+[class*="hover:bg-fd-accent"][class*="text-fd-primary"]:hover,
+[data-card].bg-fd-card:hover [class*="text-fd-primary"],
+[data-card].bg-fd-card:hover a {
+  color: var(--accent-foreground);
+}
+
+.halo-home {
+  min-height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 78% 12%, rgb(200 230 79 / 8%), transparent 28rem),
+    linear-gradient(180deg, var(--background), var(--halo-forest-deep));
+}
+
+.halo-container {
+  width: min(100% - 3rem, 78rem);
+  margin-inline: auto;
+}
+
+.halo-nav {
+  display: flex;
+  min-height: 5rem;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--halo-rule);
+}
+
+.halo-nav-links,
+.halo-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.halo-nav-link {
+  color: var(--halo-cream-soft);
+  font-size: 0.875rem;
+  transition: color 120ms ease-out;
+}
+
+.halo-nav-link:hover {
+  color: var(--halo-cream);
+}
+
+.halo-button {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding-inline: 1.15rem;
+  border: 1px solid var(--halo-rule);
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition:
+    transform 120ms ease-out,
+    background-color 120ms ease-out,
+    border-color 120ms ease-out;
+}
+
+.halo-button:hover {
+  transform: translateY(-1px);
+}
+
+.halo-button-primary {
+  border-color: var(--halo-lime);
+  color: var(--primary-foreground);
+  background: var(--halo-lime);
+}
+
+.halo-button-primary:hover {
+  border-color: var(--halo-lime-bright);
+  background: var(--halo-lime-bright);
+}
+
+.halo-button-secondary {
+  color: var(--halo-cream);
+  background: rgb(247 243 232 / 4%);
+}
+
+.halo-button-secondary:hover {
+  background: rgb(247 243 232 / 8%);
+}
+
+.halo-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(22rem, 0.92fr);
+  gap: 5rem;
+  align-items: center;
+  padding-block: 8rem 7rem;
+}
+
+.halo-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: var(--halo-lime);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.halo-eyebrow::before {
+  width: 1.75rem;
+  height: 1px;
+  content: "";
+  background: currentColor;
+}
+
+.halo-title {
+  max-width: 48rem;
+  margin-top: 1.5rem;
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(3.2rem, 6vw, 6rem);
+  font-weight: 600;
+  letter-spacing: -0.055em;
+  line-height: 0.98;
+}
+
+.halo-lede {
+  max-width: 39rem;
+  margin-top: 1.75rem;
+  color: var(--halo-cream-soft);
+  font-size: 1.05rem;
+  line-height: 1.8;
+}
+
+.halo-actions {
+  margin-top: 2.25rem;
+}
+
+.halo-flow-card {
+  position: relative;
+  padding: 1.35rem;
+  border: 1px solid var(--halo-rule);
+  border-radius: 1.75rem;
+  background: linear-gradient(160deg, var(--halo-surface-raised), var(--halo-surface));
+  box-shadow: 0 24px 64px rgb(8 20 13 / 22%);
+}
+
+.halo-flow-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.35rem 0.35rem 1.25rem;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+}
+
+.halo-code-tabs {
+  display: inline-flex;
+  gap: 0.25rem;
+  margin: 0 0.25rem 0.75rem;
+  padding: 0.25rem;
+  border: 1px solid var(--halo-rule);
+  border-radius: 999px;
+  background: rgb(16 39 28 / 48%);
+}
+
+.halo-code-tabs button {
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  color: var(--muted-foreground);
+  font-size: 0.72rem;
+  font-weight: 600;
+  transition:
+    color 100ms ease-out,
+    background-color 100ms ease-out;
+}
+
+.halo-code-tabs button:hover {
+  color: var(--halo-cream);
+}
+
+.halo-code-tabs button[data-active="true"] {
+  color: var(--primary-foreground);
+  background: var(--halo-lime);
+}
+
+.halo-code-tabs button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.halo-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.halo-live::before {
+  width: 0.45rem;
+  height: 0.45rem;
+  content: "";
+  border-radius: 999px;
+  background: #82cf8a;
+}
+
+.halo-code {
+  overflow-x: auto;
+  min-height: 22rem;
+  padding: 1.5rem;
+  border: 1px solid var(--halo-rule);
+  border-radius: 1.25rem;
+  color: var(--halo-cream-soft);
+  background: var(--halo-forest-deep);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.78rem;
+  line-height: 1.8;
+  white-space: pre;
+}
+
+.halo-code .method,
+.halo-code .value {
+  color: var(--halo-lime);
+}
+
+.halo-code .comment {
+  color: #87956f;
+}
+
+.halo-code .key {
+  color: #8eb8d8;
+}
+
+.halo-result {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid rgb(130 207 138 / 30%);
+  border-radius: 1rem;
+  color: #9ddea2;
+  background: rgb(130 207 138 / 10%);
+  font-size: 0.82rem;
+}
+
+.halo-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.halo-path {
+  padding-block: 5rem 7rem;
+  border-top: 1px solid var(--halo-rule);
+}
+
+.halo-path-heading {
+  max-width: 37rem;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-weight: 600;
+  line-height: 1.08;
+}
+
+.halo-path-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 3rem;
+}
+
+.halo-path-card {
+  display: flex;
+  min-height: 15rem;
+  flex-direction: column;
+  padding: 1.5rem;
+  border: 1px solid var(--halo-rule);
+  border-radius: 1.25rem;
+  background: rgb(35 67 51 / 68%);
+  transition:
+    transform 120ms ease-out,
+    background-color 120ms ease-out;
+}
+
+.halo-path-card:hover {
+  transform: translateY(-2px);
+  background: var(--halo-surface);
+}
+
+.halo-path-number {
+  color: var(--halo-lime);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.75rem;
+}
+
+.halo-path-card h3 {
+  margin-top: auto;
+  font-size: 1.35rem;
+  font-weight: 600;
+}
+
+.halo-path-card p {
+  margin-top: 0.65rem;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.65;
+}
+
+.halo-path-card svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 1.5rem;
+  color: var(--halo-cream);
+  stroke-width: 1.75;
+}
+
+@media (max-width: 900px) {
+  .halo-hero {
+    grid-template-columns: 1fr;
+    gap: 3.5rem;
+    padding-block: 5.5rem;
+  }
+
+  .halo-path-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .halo-path-card {
+    min-height: 12rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .halo-container {
+    width: min(100% - 2rem, 78rem);
+  }
+
+  .halo-nav-link,
+  .halo-button-secondary {
+    display: none;
+  }
+
+  .halo-title {
+    font-size: clamp(2.8rem, 15vw, 4rem);
+  }
+
+  .halo-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+html > body[data-scroll-locked] {
+  margin-right: 0px !important;
+  --removed-body-scroll-bar-size: 0px !important;
+}

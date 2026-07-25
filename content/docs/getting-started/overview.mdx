@@ -1,0 +1,47 @@
+---
+title: How HaloKYC works
+description: Understand the session lifecycle before you write integration code.
+icon: Route
+---
+
+Every verification belongs to a workspace and a workflow. A workspace separates API keys, sessions, and operators. A workflow defines which identity checks a user completes.
+
+## Core objects
+
+| Object | What it does |
+| --- | --- |
+| Workspace | Scopes credentials, workflows, sessions, and team access. |
+| API key | Authenticates server-to-server requests through `X-API-Key`. |
+| Workflow | Chooses services such as `selfie`, `liveness`, `document`, and `age`. |
+| Verification | Tracks one user from capture through a final decision. |
+| External user ID | Your stable identifier for the person or account being verified. |
+
+## Session lifecycle
+
+```text
+pending_upload
+  ├─→ awaiting_credits ─→ processing
+  └─────────────────────→ processing
+                             ├─→ approved
+                             ├─→ rejected
+                             └─→ manual_review
+```
+
+- `pending_upload` — the session exists and the user has not submitted all required evidence.
+- `awaiting_credits` — evidence is stored, but processing is waiting for workspace credits.
+- `processing` — checks are running.
+- `approved` — the workflow passed.
+- `rejected` — the workflow failed.
+- `manual_review` — an operator must decide.
+
+<Callout type="warn" title="Treat only terminal states as decisions">
+  Do not grant or deny access while a session is `pending_upload`, `awaiting_credits`, or `processing`. Route `manual_review` to an operator.
+</Callout>
+
+## Hosted and custom capture
+
+The **hosted flow** is the recommended integration. HaloKYC owns consent, camera capture, mobile handoff, upload, processing progress, and result screens.
+
+A **custom capture flow** can call the public config, consent, upload, and status endpoints directly. It gives you more UI control but makes your product responsible for camera behavior, accessibility, consent presentation, file validation, retries, and state recovery.
+
+Start with the [hosted flow](/integrate/hosted-flow) unless you have a specific reason to own those concerns.

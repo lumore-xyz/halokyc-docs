@@ -1,0 +1,12 @@
+{
+  "title": "HaloKYC",
+  "pages": [
+    "index",
+    "---Getting started---",
+    "getting-started",
+    "---Integration---",
+    "integrate",
+    "---Reference---",
+    "reference"
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "title": "Integration",
+  "icon": "Blocks",
+  "pages": ["hosted-flow", "webhooks", "status-handling", "custom-capture"]
+}

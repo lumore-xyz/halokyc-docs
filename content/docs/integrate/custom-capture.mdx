@@ -1,0 +1,60 @@
+---
+title: Build a custom capture flow
+description: Use public session endpoints when your product must own the verification UI.
+icon: PanelsTopLeft
+---
+
+<Callout type="warn" title="Use the hosted flow when possible">
+  A custom flow makes your team responsible for consent UX, camera permissions, accessibility, upload validation, mobile behavior, retries, and session recovery.
+</Callout>
+
+The public session UUID acts as the bearer credential for the capture endpoints. Do not include your workspace API key in browser requests.
+
+## Endpoint sequence
+
+<Steps>
+  <Step>
+    ### Load the session configuration
+
+    `GET /api/v1/verifications/{verification_id}/config`
+
+    Render only the steps returned in `step_sequence`. Reopened links can already be submitted or terminal.
+  </Step>
+  <Step>
+    ### Capture consent
+
+    `POST /api/v1/verifications/public/{verification_id}/consent`
+
+    Present the exact consent content required by your policy and retain the returned audit reference.
+  </Step>
+  <Step>
+    ### Upload the evidence
+
+    `POST /api/v1/verifications/{verification_id}/upload` using `multipart/form-data`.
+
+    | Field | Requirement |
+    | --- | --- |
+    | `id_front_image` | Required |
+    | `selfie_image` | Required when the workflow includes selfie/liveness |
+    | `id_back_image` | Optional or workflow-dependent |
+
+    The backend accepts supported images, normalizes orientation, and compresses larger captures. Handle `400`, `402`, `409`, and `413` explicitly.
+  </Step>
+  <Step>
+    ### Render the returned state
+
+    An upload can return `processing`, `awaiting_credits`, or a `requires_user_action` object. Follow `requires_user_action.fields` to request only the missing evidence.
+  </Step>
+  <Step>
+    ### Observe the result
+
+    Poll `GET /api/v1/verifications/{verification_id}` while the user is waiting and rely on your server-side webhook integration for durable notification.
+  </Step>
+</Steps>
+
+## Security boundary
+
+- Generate session IDs only through your authenticated backend.
+- Treat verification URLs and UUIDs as secrets.
+- Keep session IDs out of analytics payloads, referrer URLs, and support screenshots.
+- Never accept a browser-supplied callback URL; use the server-stored value from session config.

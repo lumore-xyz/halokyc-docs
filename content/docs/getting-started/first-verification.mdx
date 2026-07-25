@@ -1,0 +1,89 @@
+---
+title: Run your first verification
+description: Create a session from your server and open the hosted verification flow.
+icon: Play
+---
+
+This example uses Node.js and the built-in `fetch` API. The same request works from any server environment that can send HTTPS JSON requests.
+
+<Steps>
+  <Step>
+    ### Create the session on your server
+
+    ```ts title="server/halokyc.ts"
+    const response = await fetch(
+      `${process.env.HALOKYC_API_URL}/api/v1/verifications/start`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-Key": process.env.HALOKYC_API_KEY!,
+        },
+        body: JSON.stringify({
+          external_user_id: "user_01842",
+          workflow_id: process.env.HALOKYC_WORKFLOW_ID,
+          metadata: {
+            name: "user name", // optional
+            email: "rebel@email.com", // optional
+            phone: "+910000000000", // optional
+          },
+          callback_url: "https://app.example.com/kyc/complete", // android/ios/site callback url
+        }),
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`HaloKYC session failed: ${response.status}`);
+    }
+
+    const session = (await response.json()) as {
+      verification_id: string;
+      status: "pending_upload";
+    };
+    ```
+
+    `external_user_id` must be your stable internal identifier. Avoid an email address or another value that can change.
+
+  </Step>
+  <Step>
+    ### Build the hosted URL
+
+    ```ts
+    const verifyUrl = new URL("/verify", process.env.HALOKYC_APP_URL);
+    verifyUrl.searchParams.set("verification_id", session.verification_id);
+    ```
+
+    Build this URL from the `verification_id` returned by HaloKYC. Do not let the browser choose an arbitrary session ID.
+
+  </Step>
+  <Step>
+    ### Redirect the user
+
+    Return the URL to your authenticated frontend and use a normal top-level redirect:
+
+    ```ts
+    window.location.assign(verifyUrlFromYourServer);
+    ```
+
+    The hosted flow reads its workflow and completion URL from the server-stored session configuration. It does not trust a return URL supplied in the browser query string.
+
+  </Step>
+  <Step>
+    ### Confirm the result
+
+    During development, inspect the session:
+
+    ```bash
+    curl "$HALOKYC_API_URL/api/v1/verifications/$VERIFICATION_ID"
+    ```
+
+    Then add the [webhook integration](/integrate/webhooks) before using the result in production.
+
+  </Step>
+</Steps>
+
+<Callout type="info" title="Why the status request has no API key">
+  The public hosted flow uses the unguessable verification UUID as its bearer
+  credential. Treat verification URLs as sensitive and do not log or share them
+  unnecessarily.
+</Callout>

@@ -1,0 +1,113 @@
+---
+title: Integrate the hosted flow
+description: Add a secure start endpoint, redirect, and completion page to your product.
+icon: PanelTopOpen
+---
+
+The hosted flow is a browser experience served by your HaloKYC frontend. It handles consent, capture instructions, camera access, desktop-to-mobile handoff, evidence upload, and processing states.
+
+## Recommended architecture
+
+```text
+Your frontend → Your backend → HaloKYC API
+      │              │             │
+      │              └─ starts session with X-API-Key
+      │
+      └─ redirects to HaloKYC /verify?verification_id=<uuid>
+                         │
+                         └─ returns to your stored callback URL
+```
+
+<Steps>
+  <Step>
+    ### Add an authenticated start endpoint
+
+    Your endpoint should resolve the current user on the server. Do not accept `external_user_id` directly from an untrusted request body.
+
+    ```ts title="app/api/kyc/start/route.ts"
+    import { NextResponse } from "next/server";
+    import { requireCurrentUser } from "@/lib/auth";
+
+    export async function POST() {
+      const user = await requireCurrentUser();
+
+      const response = await fetch(
+        `${process.env.HALOKYC_API_URL}/api/v1/verifications/start`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-API-Key": process.env.HALOKYC_API_KEY!,
+          },
+          body: JSON.stringify({
+            external_user_id: user.id,
+            workflow_id: process.env.HALOKYC_WORKFLOW_ID,
+            metadata: { tenant_id: user.tenantId },
+            callback_url: `${process.env.APP_URL}/settings/verification`,
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        return NextResponse.json(
+          { error: "Could not start verification" },
+          { status: 502 },
+        );
+      }
+
+      const { verification_id } = await response.json();
+      const verifyUrl = new URL("/verify", process.env.HALOKYC_APP_URL);
+      verifyUrl.searchParams.set("verification_id", verification_id);
+
+      return NextResponse.json({ url: verifyUrl.toString() });
+    }
+    ```
+  </Step>
+  <Step>
+    ### Start from your frontend
+
+    ```tsx title="components/verify-identity-button.tsx"
+    "use client";
+
+    export function VerifyIdentityButton() {
+      async function start() {
+        const response = await fetch("/api/kyc/start", { method: "POST" });
+        if (!response.ok) throw new Error("Could not start verification");
+
+        const { url } = await response.json();
+        window.location.assign(url);
+      }
+
+      return <button onClick={start}>Verify identity</button>;
+    }
+    ```
+  </Step>
+  <Step>
+    ### Handle the return page
+
+    The return page is for user experience, not for server trust. Show a neutral “We received your verification” state and ask your backend for the user's current verification record.
+
+    Do not grant access because the browser reached the callback URL. A user can navigate there directly.
+  </Step>
+  <Step>
+    ### Reuse active sessions
+
+    Store `verification_id` against your user. If they leave during capture, reopen the same hosted URL while the session is `pending_upload` rather than creating many sessions.
+
+    Once a session is submitted or terminal, render its current state or intentionally start a new session according to your product policy.
+  </Step>
+</Steps>
+
+## Optional trusted metadata
+
+`client_metadata` accepts server-derived signals such as account age, device identifiers, or your internal trust score. The deterministic risk engine does not use this object. Send it only from trusted server code, and include only data you are permitted to process.
+
+```json
+{
+  "client_metadata": {
+    "account_age_days": 184,
+    "user_trust_score": 0.82,
+    "risk_flags": ["recent_email_change"]
+  }
+}
+```

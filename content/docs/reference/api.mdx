@@ -1,0 +1,95 @@
+---
+title: API reference
+description: The core endpoints used by a HaloKYC product integration.
+icon: Braces
+---
+
+All paths are relative to your HaloKYC API base URL.
+
+## Start verification
+
+`POST /api/v1/verifications/start`
+
+Authentication: `X-API-Key`
+
+```json title="Request"
+{
+  "external_user_id": "user_01842",
+  "workflow_id": "937f4cd5-7f58-4f76-b1ee-754927d7b020",
+  "metadata": {
+    "source": "account_settings"
+  },
+  "client_metadata": {
+    "account_age_days": 184
+  },
+  "callback_url": "https://app.example.com/kyc/complete"
+}
+```
+
+```json title="201 response"
+{
+  "verification_id": "6c87d39c-46f5-48ca-a899-580916bcaf9c",
+  "status": "pending_upload"
+}
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `external_user_id` | Yes | Your stable user identifier; 1–255 characters. |
+| `workflow_id` | Yes | UUID of a workflow in the API key's workspace. |
+| `metadata` | No | Product context returned with the session. |
+| `client_metadata` | No | Trusted server-side risk context; not used by deterministic scoring. |
+| `callback_url` | No | Public HTTP(S) URL for result notification and hosted-flow return. |
+
+## Get workflow
+
+`GET /api/v1/workflows/{workflow_id}`
+
+Authentication: `X-API-Key`
+
+Returns the workflow name, services, minimum age, automation settings, and timestamps.
+
+## Get verification
+
+`GET /api/v1/verifications/{verification_id}`
+
+Authentication: public session UUID
+
+Returns status, configured check results, required user action, risk score, and decision reason.
+
+## Get hosted-flow config
+
+`GET /api/v1/verifications/{verification_id}/config`
+
+Authentication: public session UUID
+
+Returns workflow services, minimum age, stored callback URL, step sequence, and current state.
+
+## Capture consent
+
+`POST /api/v1/verifications/public/{verification_id}/consent`
+
+Authentication: public session UUID
+
+Records consent for the public capture flow.
+
+## Upload evidence
+
+`POST /api/v1/verifications/{verification_id}/upload`
+
+Authentication: public session UUID  
+Content type: `multipart/form-data`
+
+Fields: `id_front_image`, optional `selfie_image`, and optional `id_back_image`.
+
+## Status values
+
+```ts
+type VerificationStatus =
+  | "pending_upload"
+  | "awaiting_credits"
+  | "processing"
+  | "approved"
+  | "rejected"
+  | "manual_review";
+```

@@ -1,0 +1,114 @@
+---
+title: Set up HaloKYC
+description: Create a workspace, API key, and workflow before starting a verification.
+icon: Settings2
+---
+
+You need three things before your code can create a session: a workspace, an API key scoped to that workspace, and a workflow.
+
+<Steps>
+  <Step>
+    ### Create or select a workspace
+
+    Sign in to the [HaloKYC dashboard](https://halokyc.com/dashboard). Create a workspace for the product or environment you are integrating.
+
+    Use separate workspaces or environment-scoped keys when you need to keep test and live traffic isolated.
+  </Step>
+  <Step>
+    ### Create an API key
+
+    Open **Workspace → API keys**, create a key, and copy it immediately. Store it in your server-side secret manager.
+
+    ```bash title=".env"
+    HALOKYC_API_URL=https://api.halokyc.com
+    HALOKYC_APP_URL=https://www.halokyc.com
+    HALOKYC_API_KEY=live_replace_with_your_key
+    ```
+
+    Add these variables to your server environment and replace
+    `live_replace_with_your_key` with your own HaloKYC API key. The API and app
+    URLs above are the hosted HaloKYC production endpoints.
+
+    <Callout type="error" title="Keep the key on your server">
+      Do not prefix this variable with `NEXT_PUBLIC_`, `VITE_`, or another browser-exposed convention. Do not put it in mobile or frontend bundles.
+    </Callout>
+  </Step>
+  <Step>
+    ### Create a workflow
+
+    Open **Workspace → Workflows**, then select the services your users must complete.
+
+    - `document` extracts and validates identity-document data.
+    - `selfie` captures the person completing the verification.
+    - `liveness` checks that the capture represents a live person.
+    - `age` evaluates the workflow's configured minimum age.
+
+    Copy the workflow ID after saving.
+
+    ```bash title=".env.local"
+    HALOKYC_WORKFLOW_ID=00000000-0000-0000-0000-000000000000
+    ```
+  </Step>
+  <Step>
+    ### Check your server configuration
+
+    Ask HaloKYC for the selected workflow using the same key your application will use.
+
+    <CodeBlockTabs defaultValue="node">
+      <CodeBlockTabsList>
+        <CodeBlockTabsTrigger value="node">Node.js</CodeBlockTabsTrigger>
+        <CodeBlockTabsTrigger value="python">Python</CodeBlockTabsTrigger>
+        <CodeBlockTabsTrigger value="curl">cURL</CodeBlockTabsTrigger>
+      </CodeBlockTabsList>
+
+      <CodeBlockTab value="node">
+        ```js
+        const response = await fetch(
+          `${process.env.HALOKYC_API_URL}/api/v1/workflows/${process.env.HALOKYC_WORKFLOW_ID}`,
+          {
+            headers: {
+              "X-API-Key": process.env.HALOKYC_API_KEY,
+            },
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error(`HaloKYC request failed: ${response.status}`);
+        }
+
+        console.log(await response.json());
+        ```
+      </CodeBlockTab>
+
+      <CodeBlockTab value="python">
+        ```python
+        import os
+        import requests
+
+        response = requests.get(
+            (
+                f"{os.environ['HALOKYC_API_URL']}/api/v1/workflows/"
+                f"{os.environ['HALOKYC_WORKFLOW_ID']}"
+            ),
+            headers={"X-API-Key": os.environ["HALOKYC_API_KEY"]},
+            timeout=15,
+        )
+        response.raise_for_status()
+
+        print(response.json())
+        ```
+      </CodeBlockTab>
+
+      <CodeBlockTab value="curl">
+        ```bash
+        curl "$HALOKYC_API_URL/api/v1/workflows/$HALOKYC_WORKFLOW_ID" \
+          -H "X-API-Key: $HALOKYC_API_KEY"
+        ```
+      </CodeBlockTab>
+    </CodeBlockTabs>
+
+    A `200` response confirms that the API key can access the workflow in its workspace.
+  </Step>
+</Steps>
+
+Continue to [Run your first verification](/getting-started/first-verification).
