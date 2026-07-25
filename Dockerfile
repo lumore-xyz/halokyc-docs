@@ -11,6 +11,10 @@ WORKDIR /app
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Build-time argument for production site URL
+ARG NEXT_PUBLIC_SITE_URL
+ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
+
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
 
