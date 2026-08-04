@@ -4,7 +4,10 @@ description: Receive decision notifications and reconcile verification state saf
 icon: Webhook
 ---
 
-When processing reaches a decision, HaloKYC sends a JSON `POST` to the `callback_url` stored on the session.
+When processing reaches a decision, HaloKYC sends a JSON `POST` to the
+session's `callback_url` override, or to the active webhook endpoints configured
+for its workspace. Add the normal endpoint in Dashboard → Webhooks; use a
+per-session `callback_url` only when that session needs a different target.
 
 ## Payload
 

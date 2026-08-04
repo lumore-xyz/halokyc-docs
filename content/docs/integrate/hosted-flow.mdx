@@ -15,7 +15,7 @@ Your frontend → Your backend → HaloKYC API
       │
       └─ redirects to HaloKYC /verify?verification_id=<uuid>
                          │
-                         └─ returns to your stored callback URL
+                         └─ returns to your stored completion URL
 ```
 
 <Steps>
@@ -43,7 +43,7 @@ Your frontend → Your backend → HaloKYC API
             external_user_id: user.id,
             workflow_id: process.env.HALOKYC_WORKFLOW_ID,
             metadata: { tenant_id: user.tenantId },
-            callback_url: `${process.env.APP_URL}/settings/verification`,
+            completion_url: `${process.env.APP_URL}/settings/verification`,
           }),
         },
       );
@@ -87,7 +87,7 @@ Your frontend → Your backend → HaloKYC API
 
     The return page is for user experience, not for server trust. Show a neutral “We received your verification” state and ask your backend for the user's current verification record.
 
-    Do not grant access because the browser reached the callback URL. A user can navigate there directly.
+    Do not grant access because the browser reached the completion URL. A user can navigate there directly.
   </Step>
   <Step>
     ### Reuse active sessions
